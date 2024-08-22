@@ -582,6 +582,8 @@ class Listener:
                 # probably an event
                 try:
                     event = cdp.util.parse_json_event(message)
+                    if not event:
+                        continue
                     event_tx = EventTransaction(event)
                     if not self.connection.mapper:
                         self.connection.__count__ = itertools.count(0)
