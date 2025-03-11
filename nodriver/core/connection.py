@@ -541,8 +541,8 @@ class Connection(metaclass=CantTouchThis):
         try:
             # in try except since if browser connection sends this it reises an exception
             return await tx
-        except ProtocolException:
-            pass
+        except ProtocolException as e:
+            return None, e
 
 
 class Listener:
