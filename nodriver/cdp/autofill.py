@@ -6,13 +6,13 @@
 # CDP domain: Autofill (experimental)
 
 from __future__ import annotations
+
 import enum
 import typing
 from dataclasses import dataclass
-from .util import event_class, T_JSON_DICT
 
-from . import dom
-from . import page
+from . import dom, page
+from .util import T_JSON_DICT, event_class
 
 
 @dataclass

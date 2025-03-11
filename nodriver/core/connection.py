@@ -10,19 +10,12 @@ import logging
 import sys
 import types
 from asyncio import iscoroutine, iscoroutinefunction
-from typing import (
-    Generator,
-    Union,
-    Awaitable,
-    Callable,
-    Any,
-    TypeVar,
-)
+from typing import Any, Awaitable, Callable, Generator, TypeVar, Union
 
-import websockets
+import websockets.asyncio.client
 
-from . import util
 from .. import cdp
+from . import util
 
 T = TypeVar("T")
 
@@ -32,7 +25,7 @@ PING_TIMEOUT: int = 900  # 15 minutes
 
 TargetType = Union[cdp.target.TargetInfo, cdp.target.TargetID]
 
-logger = logging.getLogger("uc.connection")
+logger = logging.getLogger(__name__)
 
 
 class ProtocolException(Exception):
@@ -95,6 +88,7 @@ class Transaction(asyncio.Future):
 
     @property
     def message(self):
+
         return json.dumps({"method": self.method, "params": self.params, "id": self.id})
 
     @property
@@ -187,7 +181,7 @@ class CantTouchThis(type):
 
 class Connection(metaclass=CantTouchThis):
     attached: bool = None
-    websocket: websockets.WebSocketClientProtocol
+    websocket: websockets.asyncio.client.ClientConnection
     _target: cdp.target.TargetInfo
 
     def __init__(
@@ -228,7 +222,7 @@ class Connection(metaclass=CantTouchThis):
     def closed(self):
         if not self.websocket:
             return True
-        return self.websocket.closed
+        return bool(self.websocket.close_code)
 
     def add_handler(
         self,
@@ -280,7 +274,7 @@ class Connection(metaclass=CantTouchThis):
         :return:
         """
 
-        if not self.websocket or self.websocket.closed:
+        if not self.websocket or bool(self.websocket.close_code):
             try:
                 self.websocket = await websockets.connect(
                     self.websocket_url,
@@ -300,14 +294,13 @@ class Connection(metaclass=CantTouchThis):
         # when a websocket connection is closed (either by error or on purpose)
         # and reconnected, the registered event listeners (if any), should be
         # registered again, so the browser sends those events
-
         await self._register_handlers()
 
     async def aclose(self):
         """
         closes the websocket connection. should not be called manually by users.
         """
-        if self.websocket and not self.websocket.closed:
+        if self.websocket:
             if self.listener and self.listener.running:
                 self.listener.cancel()
                 self.enabled_domains.clear()
@@ -410,15 +403,25 @@ class Connection(metaclass=CantTouchThis):
         :return:
         """
         await self.aopen()
-        if not self.websocket or self.closed:
+        if not self.websocket or bool(self.websocket.close_code):
             return
+        if self._owner:
+            browser = self._owner
+            if browser.config:
+                if browser.config.expert:
+                    await self._prepare_expert()
+                if browser.config.headless:
+                    await self._prepare_headless()
         if not self.listener or not self.listener.running:
             self.listener = Listener(self)
         try:
             tx = Transaction(cdp_obj)
             tx.connection = self
-            if not self.mapper:
+            # if not self.mapper:
+            if not _is_update:
+                self.mapper.clear()
                 self.__count__ = itertools.count(0)
+
             tx.id = next(self.__count__)
             self.mapper.update({tx.id: tx})
             if not _is_update:
@@ -485,6 +488,61 @@ class Connection(metaclass=CantTouchThis):
             # temp variable when we registered it or saw handlers for it.
             # items still present at this point are unused and need removal
             self.enabled_domains.remove(ed)
+
+    async def _prepare_headless(self):
+
+        if getattr(self, "_prep_headless_done", None):
+            return
+        response, error = await self._send_oneshot(
+            cdp.runtime.evaluate(
+                expression="navigator.userAgent",
+                user_gesture=True,
+                await_promise=True,
+                return_by_value=True,
+                allow_unsafe_eval_blocked_by_csp=True,
+            )
+        )
+        if response and response.value:
+            ua = response.value
+            await self._send_oneshot(
+                cdp.network.set_user_agent_override(
+                    user_agent=ua.replace("Headless", ""),
+                )
+            )
+        setattr(self, "_prep_headless_done", True)
+
+    async def _prepare_expert(self):
+        if getattr(self, "_prep_expert_done", None):
+            return
+        if self._owner:
+            await self._send_oneshot(
+                cdp.page.add_script_to_evaluate_on_new_document(
+                    """
+                    console.log("hooking attachShadow");
+                    Element.prototype._attachShadow = Element.prototype.attachShadow;
+                    Element.prototype.attachShadow = function () {
+                        console.log('calling hooked attachShadow')
+                        return this._attachShadow( { mode: "open" } );
+                    };
+                """
+                )
+            )
+
+            await self._send_oneshot(cdp.page.enable())
+        setattr(self, "_prep_expert_done", True)
+
+    async def _send_oneshot(self, cdp_obj):
+
+        tx = Transaction(cdp_obj)
+        tx.connection = self
+        tx.id = -2
+        self.mapper.update({tx.id: tx})
+        await self.websocket.send(tx.message)
+        try:
+            # in try except since if browser connection sends this it reises an exception
+            return await tx
+        except ProtocolException:
+            pass
 
 
 class Listener:
@@ -572,12 +630,18 @@ class Listener:
 
                     # thanks to zxsleebu for discovering the memory leak
                     # pop to prevent memory leaks
-                    tx = self.connection.mapper.pop(message["id"])
+                    tx = self.connection.mapper[message["id"]]
                     logger.debug("got answer for %s (message_id:%d)", tx, message["id"])
 
                     # complete the transaction, which is a Future object
                     # and thus will return to anyone awaiting it.
                     tx(**message)
+                else:
+                    if message["id"] == -2:
+                        tx = self.connection.mapper.get(-2)
+                        if tx:
+                            tx(**message)
+                        continue
             else:
                 # probably an event
                 try:

@@ -6,14 +6,13 @@
 # CDP domain: Accessibility (experimental)
 
 from __future__ import annotations
+
 import enum
 import typing
 from dataclasses import dataclass
-from .util import event_class, T_JSON_DICT
 
-from . import dom
-from . import page
-from . import runtime
+from . import dom, page, runtime
+from .util import T_JSON_DICT, event_class
 
 
 class AXNodeId(str):
@@ -314,6 +313,7 @@ class AXPropertyName(enum.Enum):
     - from 'activedescendant' to 'owns' - relationships between elements other than parent/child/sibling.
     """
 
+    ACTIONS = "actions"
     BUSY = "busy"
     DISABLED = "disabled"
     EDITABLE = "editable"

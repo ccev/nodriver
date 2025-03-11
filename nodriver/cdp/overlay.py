@@ -6,15 +6,15 @@
 # CDP domain: Overlay (experimental)
 
 from __future__ import annotations
+
 import enum
 import typing
 from dataclasses import dataclass
-from .util import event_class, T_JSON_DICT
 
-from . import dom
-from . import page
-from . import runtime
 from deprecated.sphinx import deprecated  # type: ignore
+
+from . import dom, page, runtime
+from .util import T_JSON_DICT, event_class
 
 
 @dataclass
@@ -1547,9 +1547,12 @@ def set_show_hit_test_borders(
     json = yield cmd_dict
 
 
+@deprecated(version="1.3")
 def set_show_web_vitals(show: bool) -> typing.Generator[T_JSON_DICT, T_JSON_DICT, None]:
     """
-    Request that backend shows an overlay with web vital metrics.
+    Deprecated, no longer has any effect.
+
+    .. deprecated:: 1.3
 
     :param show:
     """

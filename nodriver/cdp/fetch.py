@@ -6,19 +6,20 @@
 # CDP domain: Fetch
 
 from __future__ import annotations
+
 import enum
 import typing
 from dataclasses import dataclass
-from .util import event_class, T_JSON_DICT
 
-from . import io
-from . import network
-from . import page
+from . import io, network, page
+from .util import T_JSON_DICT, event_class
 
 
 class RequestId(str):
     """
     Unique request identifier.
+    Note that this does not identify individual HTTP requests that are part of
+    a network request.
     """
 
     def to_json(self) -> str:

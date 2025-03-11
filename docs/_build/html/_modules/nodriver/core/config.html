@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>nodriver.core.config - nodriver documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
@@ -180,6 +180,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/audits.html">Audits</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/autofill.html">Autofill</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/background_service.html">BackgroundService</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/bluetooth_emulation.html">BluetoothEmulation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/browser.html">Browser</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/cache_storage.html">CacheStorage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/cast.html">Cast</a></li>
@@ -198,6 +199,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/extensions.html">Extensions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/fed_cm.html">FedCm</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/fetch.html">Fetch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/file_system.html">FileSystem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/headless_experimental.html">HeadlessExperimental</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/heap_profiler.html">HeapProfiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/indexed_db.html">IndexedDB</a></li>
@@ -268,10 +270,10 @@
 <span class="kn">import</span> <span class="nn">secrets</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
-<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">MethodType</span>
 <span class="kn">import</span> <span class="nn">zipfile</span>
-<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">MethodType</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
 <span class="kn">from</span> <span class="nn">._contradict</span> <span class="kn">import</span> <span class="n">ContraDict</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -307,6 +309,7 @@
         <span class="n">lang</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;en-US&quot;</span><span class="p">,</span>
         <span class="n">host</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">AUTO</span><span class="p">,</span>
         <span class="n">port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">AUTO</span><span class="p">,</span>
+        <span class="n">expert</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">AUTO</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -327,6 +330,10 @@
 <span class="sd">        :param sandbox: disables sandbox</span>
 <span class="sd">        :param autodiscover_targets: use autodiscovery of targets</span>
 <span class="sd">        :param lang: language string to use other than the default &quot;en-US,en;q=0.9&quot;</span>
+<span class="sd">        :param expert: when set to True, enabled &quot;expert&quot; mode.</span>
+<span class="sd">               This conveys, the inclusion of parameters:  ----disable-site-isolation-trials,</span>
+<span class="sd">               as well as some scripts and patching useful for debugging (for example, ensuring shadow-root is always in &quot;open&quot; mode)</span>
+
 <span class="sd">        :param kwargs:</span>
 
 <span class="sd">        :type user_data_dir: PathLike</span>
@@ -357,11 +364,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">sandbox</span> <span class="o">=</span> <span class="n">sandbox</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">host</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expert</span> <span class="o">=</span> <span class="n">expert</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_extensions</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># when using posix-ish operating system and running as root</span>
         <span class="c1"># you must use no_sandbox = True, which in case is corrected here</span>
         <span class="k">if</span> <span class="n">is_posix</span> <span class="ow">and</span> <span class="n">is_root</span><span class="p">()</span> <span class="ow">and</span> <span class="n">sandbox</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;detected root usage, autoo disabling sandbox mode&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;detected root usage, auto disabling sandbox mode&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sandbox</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">autodiscover_targets</span> <span class="o">=</span> <span class="kc">True</span>
@@ -380,12 +388,7 @@
             <span class="s2">&quot;--password-store=basic&quot;</span><span class="p">,</span>
             <span class="s2">&quot;--disable-infobars&quot;</span><span class="p">,</span>
             <span class="s2">&quot;--disable-breakpad&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;--disable-component-update&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;--disable-backgrounding-occluded-windows&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;--disable-renderer-backgrounding&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;--disable-background-networking&quot;</span><span class="p">,</span>
             <span class="s2">&quot;--disable-dev-shm-usage&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;--disable-features=IsolateOrigins,site-per-process&quot;</span><span class="p">,</span>
             <span class="s2">&quot;--disable-session-crashed-bubble&quot;</span><span class="p">,</span>
             <span class="s2">&quot;--disable-search-engine-choice-screen&quot;</span><span class="p">,</span>
         <span class="p">]</span>
@@ -436,18 +439,16 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_extensions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
 
-    <span class="c1"># def __getattr__(self, item):</span>
-    <span class="c1">#     if item not in self.__dict__:</span>
-
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># the host and port will be added when starting</span>
         <span class="c1"># the browser, as by the time it starts, the port</span>
         <span class="c1"># is probably already taken</span>
         <span class="n">args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_browser_args</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">args</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;--user-data-dir=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_data_dir</span><span class="p">]</span>
-        <span class="n">args</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;--disable-features=IsolateOrigins,site-per-process&quot;</span><span class="p">]</span>
         <span class="n">args</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;--disable-session-crashed-bubble&quot;</span><span class="p">]</span>
-
+        <span class="n">args</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;--disable-features=IsolateOrigins,site-per-process&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expert</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;--disable-site-isolation-trials&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_browser_args</span><span class="p">:</span>
             <span class="n">args</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">arg</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_browser_args</span> <span class="k">if</span> <span class="n">arg</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">args</span><span class="p">])</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">headless</span><span class="p">:</span>
@@ -496,11 +497,6 @@
         <span class="k">return</span> <span class="n">s</span></div>
 
 
-    <span class="c1">#     d = self.__dict__.copy()</span>
-    <span class="c1">#     d.pop(&quot;browser_args&quot;)</span>
-    <span class="c1">#     d[&quot;browser_args&quot;] = self()</span>
-    <span class="c1">#     return d</span>
-
 
 <span class="k">def</span> <span class="nf">is_root</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -509,7 +505,8 @@
 <span class="sd">    :return:</span>
 <span class="sd">    :rtype:</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">ctypes</span><span class="o">,</span> <span class="nn">os</span>
+    <span class="kn">import</span> <span class="nn">ctypes</span>
+    <span class="kn">import</span> <span class="nn">os</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">getuid</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span>

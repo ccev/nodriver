@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>nodriver.cdp.storage - nodriver documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
@@ -180,6 +180,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/audits.html">Audits</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/autofill.html">Autofill</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/background_service.html">BackgroundService</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/bluetooth_emulation.html">BluetoothEmulation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/browser.html">Browser</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/cache_storage.html">CacheStorage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/cast.html">Cast</a></li>
@@ -198,6 +199,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/extensions.html">Extensions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/fed_cm.html">FedCm</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/fetch.html">Fetch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/file_system.html">FileSystem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/headless_experimental.html">HeadlessExperimental</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/heap_profiler.html">HeapProfiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/indexed_db.html">IndexedDB</a></li>
@@ -270,14 +272,13 @@
 <span class="c1"># CDP domain: Storage (experimental)</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
 <span class="kn">import</span> <span class="nn">enum</span>
 <span class="kn">import</span> <span class="nn">typing</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">event_class</span><span class="p">,</span> <span class="n">T_JSON_DICT</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">browser</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">network</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">page</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">browser</span><span class="p">,</span> <span class="n">network</span><span class="p">,</span> <span class="n">page</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">T_JSON_DICT</span><span class="p">,</span> <span class="n">event_class</span>
 
 
 <div class="viewcode-block" id="SerializedStorageKey">
@@ -1060,6 +1061,112 @@
 
 
 
+<div class="viewcode-block" id="AttributionReportingAggregatableDebugReportingData">
+<a class="viewcode-back" href="../../../nodriver/cdp/storage.html#nodriver.cdp.storage.AttributionReportingAggregatableDebugReportingData">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">AttributionReportingAggregatableDebugReportingData</span><span class="p">:</span>
+    <span class="n">key_piece</span><span class="p">:</span> <span class="n">UnsignedInt128AsBase16</span>
+
+    <span class="c1">#: number instead of integer because not all uint32 can be represented by</span>
+    <span class="c1">#: int</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">float</span>
+
+    <span class="n">types</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_JSON_DICT</span><span class="p">:</span>
+        <span class="n">json</span><span class="p">:</span> <span class="n">T_JSON_DICT</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">json</span><span class="p">[</span><span class="s2">&quot;keyPiece&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_piece</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+        <span class="n">json</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">json</span><span class="p">[</span><span class="s2">&quot;types&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">json</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">json</span><span class="p">:</span> <span class="n">T_JSON_DICT</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AttributionReportingAggregatableDebugReportingData</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">key_piece</span><span class="o">=</span><span class="n">UnsignedInt128AsBase16</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;keyPiece&quot;</span><span class="p">]),</span>
+            <span class="n">value</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]),</span>
+            <span class="n">types</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">json</span><span class="p">[</span><span class="s2">&quot;types&quot;</span><span class="p">]],</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AttributionReportingAggregatableDebugReportingConfig">
+<a class="viewcode-back" href="../../../nodriver/cdp/storage.html#nodriver.cdp.storage.AttributionReportingAggregatableDebugReportingConfig">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">AttributionReportingAggregatableDebugReportingConfig</span><span class="p">:</span>
+    <span class="n">key_piece</span><span class="p">:</span> <span class="n">UnsignedInt128AsBase16</span>
+
+    <span class="n">debug_data</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">AttributionReportingAggregatableDebugReportingData</span><span class="p">]</span>
+
+    <span class="c1">#: number instead of integer because not all uint32 can be represented by</span>
+    <span class="c1">#: int, only present for source registrations</span>
+    <span class="n">budget</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">aggregation_coordinator_origin</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_JSON_DICT</span><span class="p">:</span>
+        <span class="n">json</span><span class="p">:</span> <span class="n">T_JSON_DICT</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">json</span><span class="p">[</span><span class="s2">&quot;keyPiece&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_piece</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+        <span class="n">json</span><span class="p">[</span><span class="s2">&quot;debugData&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_data</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">budget</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">json</span><span class="p">[</span><span class="s2">&quot;budget&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">budget</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregation_coordinator_origin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">json</span><span class="p">[</span><span class="s2">&quot;aggregationCoordinatorOrigin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregation_coordinator_origin</span>
+        <span class="k">return</span> <span class="n">json</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">json</span><span class="p">:</span> <span class="n">T_JSON_DICT</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AttributionReportingAggregatableDebugReportingConfig</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">key_piece</span><span class="o">=</span><span class="n">UnsignedInt128AsBase16</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;keyPiece&quot;</span><span class="p">]),</span>
+            <span class="n">debug_data</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">AttributionReportingAggregatableDebugReportingData</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">json</span><span class="p">[</span><span class="s2">&quot;debugData&quot;</span><span class="p">]</span>
+            <span class="p">],</span>
+            <span class="n">budget</span><span class="o">=</span><span class="p">(</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;budget&quot;</span><span class="p">])</span> <span class="k">if</span> <span class="n">json</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;budget&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">),</span>
+            <span class="n">aggregation_coordinator_origin</span><span class="o">=</span><span class="p">(</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;aggregationCoordinatorOrigin&quot;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">json</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;aggregationCoordinatorOrigin&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">),</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AttributionScopesData">
+<a class="viewcode-back" href="../../../nodriver/cdp/storage.html#nodriver.cdp.storage.AttributionScopesData">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">AttributionScopesData</span><span class="p">:</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+    <span class="c1">#: number instead of integer because not all uint32 can be represented by</span>
+    <span class="c1">#: int</span>
+    <span class="n">limit</span><span class="p">:</span> <span class="nb">float</span>
+
+    <span class="n">max_event_states</span><span class="p">:</span> <span class="nb">float</span>
+
+    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_JSON_DICT</span><span class="p">:</span>
+        <span class="n">json</span><span class="p">:</span> <span class="n">T_JSON_DICT</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">json</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+        <span class="n">json</span><span class="p">[</span><span class="s2">&quot;limit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">limit</span>
+        <span class="n">json</span><span class="p">[</span><span class="s2">&quot;maxEventStates&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_event_states</span>
+        <span class="k">return</span> <span class="n">json</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">json</span><span class="p">:</span> <span class="n">T_JSON_DICT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AttributionScopesData</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">json</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]],</span>
+            <span class="n">limit</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;limit&quot;</span><span class="p">]),</span>
+            <span class="n">max_event_states</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;maxEventStates&quot;</span><span class="p">]),</span>
+        <span class="p">)</span></div>
+
+
+
 <div class="viewcode-block" id="AttributionReportingSourceRegistration">
 <a class="viewcode-back" href="../../../nodriver/cdp/storage.html#nodriver.cdp.storage.AttributionReportingSourceRegistration">[docs]</a>
 <span class="nd">@dataclass</span>
@@ -1092,7 +1199,17 @@
 
     <span class="n">trigger_data_matching</span><span class="p">:</span> <span class="n">AttributionReportingTriggerDataMatching</span>
 
+    <span class="n">destination_limit_priority</span><span class="p">:</span> <span class="n">SignedInt64AsBase10</span>
+
+    <span class="n">aggregatable_debug_reporting_config</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">AttributionReportingAggregatableDebugReportingConfig</span>
+    <span class="p">)</span>
+
+    <span class="n">max_event_level_reports</span><span class="p">:</span> <span class="nb">int</span>
+
     <span class="n">debug_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">UnsignedInt64AsBase10</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">scopes_data</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">AttributionScopesData</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_JSON_DICT</span><span class="p">:</span>
         <span class="n">json</span><span class="p">:</span> <span class="n">T_JSON_DICT</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
@@ -1109,8 +1226,15 @@
         <span class="n">json</span><span class="p">[</span><span class="s2">&quot;filterData&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_data</span><span class="p">]</span>
         <span class="n">json</span><span class="p">[</span><span class="s2">&quot;aggregationKeys&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregation_keys</span><span class="p">]</span>
         <span class="n">json</span><span class="p">[</span><span class="s2">&quot;triggerDataMatching&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trigger_data_matching</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+        <span class="n">json</span><span class="p">[</span><span class="s2">&quot;destinationLimitPriority&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">destination_limit_priority</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+        <span class="n">json</span><span class="p">[</span><span class="s2">&quot;aggregatableDebugReportingConfig&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">aggregatable_debug_reporting_config</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">json</span><span class="p">[</span><span class="s2">&quot;maxEventLevelReports&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_event_level_reports</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">json</span><span class="p">[</span><span class="s2">&quot;debugKey&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_key</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scopes_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">json</span><span class="p">[</span><span class="s2">&quot;scopesData&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scopes_data</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">json</span>
 
     <span class="nd">@classmethod</span>
@@ -1140,9 +1264,21 @@
             <span class="n">trigger_data_matching</span><span class="o">=</span><span class="n">AttributionReportingTriggerDataMatching</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span>
                 <span class="n">json</span><span class="p">[</span><span class="s2">&quot;triggerDataMatching&quot;</span><span class="p">]</span>
             <span class="p">),</span>
+            <span class="n">destination_limit_priority</span><span class="o">=</span><span class="n">SignedInt64AsBase10</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span>
+                <span class="n">json</span><span class="p">[</span><span class="s2">&quot;destinationLimitPriority&quot;</span><span class="p">]</span>
+            <span class="p">),</span>
+            <span class="n">aggregatable_debug_reporting_config</span><span class="o">=</span><span class="n">AttributionReportingAggregatableDebugReportingConfig</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span>
+                <span class="n">json</span><span class="p">[</span><span class="s2">&quot;aggregatableDebugReportingConfig&quot;</span><span class="p">]</span>
+            <span class="p">),</span>
+            <span class="n">max_event_level_reports</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;maxEventLevelReports&quot;</span><span class="p">]),</span>
             <span class="n">debug_key</span><span class="o">=</span><span class="p">(</span>
                 <span class="n">UnsignedInt64AsBase10</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;debugKey&quot;</span><span class="p">])</span>
                 <span class="k">if</span> <span class="n">json</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;debugKey&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">),</span>
+            <span class="n">scopes_data</span><span class="o">=</span><span class="p">(</span>
+                <span class="n">AttributionScopesData</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;scopesData&quot;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">json</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scopesData&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
                 <span class="k">else</span> <span class="kc">None</span>
             <span class="p">),</span>
         <span class="p">)</span></div>
@@ -1164,7 +1300,9 @@
     <span class="n">DESTINATION_BOTH_LIMITS_REACHED</span> <span class="o">=</span> <span class="s2">&quot;destinationBothLimitsReached&quot;</span>
     <span class="n">REPORTING_ORIGINS_PER_SITE_LIMIT_REACHED</span> <span class="o">=</span> <span class="s2">&quot;reportingOriginsPerSiteLimitReached&quot;</span>
     <span class="n">EXCEEDS_MAX_CHANNEL_CAPACITY</span> <span class="o">=</span> <span class="s2">&quot;exceedsMaxChannelCapacity&quot;</span>
+    <span class="n">EXCEEDS_MAX_SCOPES_CHANNEL_CAPACITY</span> <span class="o">=</span> <span class="s2">&quot;exceedsMaxScopesChannelCapacity&quot;</span>
     <span class="n">EXCEEDS_MAX_TRIGGER_STATE_CARDINALITY</span> <span class="o">=</span> <span class="s2">&quot;exceedsMaxTriggerStateCardinality&quot;</span>
+    <span class="n">EXCEEDS_MAX_EVENT_STATES_LIMIT</span> <span class="o">=</span> <span class="s2">&quot;exceedsMaxEventStatesLimit&quot;</span>
     <span class="n">DESTINATION_PER_DAY_REPORTING_LIMIT_REACHED</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s2">&quot;destinationPerDayReportingLimitReached&quot;</span>
     <span class="p">)</span>
@@ -1203,10 +1341,13 @@
     <span class="c1">#: int</span>
     <span class="n">value</span><span class="p">:</span> <span class="nb">float</span>
 
+    <span class="n">filtering_id</span><span class="p">:</span> <span class="n">UnsignedInt64AsBase10</span>
+
     <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_JSON_DICT</span><span class="p">:</span>
         <span class="n">json</span><span class="p">:</span> <span class="n">T_JSON_DICT</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="n">json</span><span class="p">[</span><span class="s2">&quot;key&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span>
         <span class="n">json</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">json</span><span class="p">[</span><span class="s2">&quot;filteringId&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filtering_id</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">json</span>
 
     <span class="nd">@classmethod</span>
@@ -1216,6 +1357,7 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
             <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;key&quot;</span><span class="p">]),</span>
             <span class="n">value</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]),</span>
+            <span class="n">filtering_id</span><span class="o">=</span><span class="n">UnsignedInt64AsBase10</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;filteringId&quot;</span><span class="p">]),</span>
         <span class="p">)</span></div>
 
 
@@ -1353,9 +1495,17 @@
 
     <span class="n">aggregatable_values</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">AttributionReportingAggregatableValueEntry</span><span class="p">]</span>
 
+    <span class="n">aggregatable_filtering_id_max_bytes</span><span class="p">:</span> <span class="nb">int</span>
+
     <span class="n">debug_reporting</span><span class="p">:</span> <span class="nb">bool</span>
 
     <span class="n">source_registration_time_config</span><span class="p">:</span> <span class="n">AttributionReportingSourceRegistrationTimeConfig</span>
+
+    <span class="n">aggregatable_debug_reporting_config</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">AttributionReportingAggregatableDebugReportingConfig</span>
+    <span class="p">)</span>
+
+    <span class="n">scopes</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
 
     <span class="n">debug_key</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">UnsignedInt64AsBase10</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -1374,10 +1524,17 @@
             <span class="n">i</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregatable_trigger_data</span>
         <span class="p">]</span>
         <span class="n">json</span><span class="p">[</span><span class="s2">&quot;aggregatableValues&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregatable_values</span><span class="p">]</span>
+        <span class="n">json</span><span class="p">[</span><span class="s2">&quot;aggregatableFilteringIdMaxBytes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">aggregatable_filtering_id_max_bytes</span>
+        <span class="p">)</span>
         <span class="n">json</span><span class="p">[</span><span class="s2">&quot;debugReporting&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_reporting</span>
         <span class="n">json</span><span class="p">[</span><span class="s2">&quot;sourceRegistrationTimeConfig&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">source_registration_time_config</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
         <span class="p">)</span>
+        <span class="n">json</span><span class="p">[</span><span class="s2">&quot;aggregatableDebugReportingConfig&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">aggregatable_debug_reporting_config</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">json</span><span class="p">[</span><span class="s2">&quot;scopes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scopes</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">json</span><span class="p">[</span><span class="s2">&quot;debugKey&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_key</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregation_coordinator_origin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1406,10 +1563,17 @@
                 <span class="n">AttributionReportingAggregatableValueEntry</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">json</span><span class="p">[</span><span class="s2">&quot;aggregatableValues&quot;</span><span class="p">]</span>
             <span class="p">],</span>
+            <span class="n">aggregatable_filtering_id_max_bytes</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span>
+                <span class="n">json</span><span class="p">[</span><span class="s2">&quot;aggregatableFilteringIdMaxBytes&quot;</span><span class="p">]</span>
+            <span class="p">),</span>
             <span class="n">debug_reporting</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;debugReporting&quot;</span><span class="p">]),</span>
             <span class="n">source_registration_time_config</span><span class="o">=</span><span class="n">AttributionReportingSourceRegistrationTimeConfig</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span>
                 <span class="n">json</span><span class="p">[</span><span class="s2">&quot;sourceRegistrationTimeConfig&quot;</span><span class="p">]</span>
             <span class="p">),</span>
+            <span class="n">aggregatable_debug_reporting_config</span><span class="o">=</span><span class="n">AttributionReportingAggregatableDebugReportingConfig</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span>
+                <span class="n">json</span><span class="p">[</span><span class="s2">&quot;aggregatableDebugReportingConfig&quot;</span><span class="p">]</span>
+            <span class="p">),</span>
+            <span class="n">scopes</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">json</span><span class="p">[</span><span class="s2">&quot;scopes&quot;</span><span class="p">]],</span>
             <span class="n">debug_key</span><span class="o">=</span><span class="p">(</span>
                 <span class="n">UnsignedInt64AsBase10</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;debugKey&quot;</span><span class="p">])</span>
                 <span class="k">if</span> <span class="n">json</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;debugKey&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -1472,6 +1636,7 @@
     <span class="n">EXCESSIVE_REPORTING_ORIGINS</span> <span class="o">=</span> <span class="s2">&quot;excessiveReportingOrigins&quot;</span>
     <span class="n">NO_HISTOGRAMS</span> <span class="o">=</span> <span class="s2">&quot;noHistograms&quot;</span>
     <span class="n">INSUFFICIENT_BUDGET</span> <span class="o">=</span> <span class="s2">&quot;insufficientBudget&quot;</span>
+    <span class="n">INSUFFICIENT_NAMED_BUDGET</span> <span class="o">=</span> <span class="s2">&quot;insufficientNamedBudget&quot;</span>
     <span class="n">NO_MATCHING_SOURCE_FILTER_DATA</span> <span class="o">=</span> <span class="s2">&quot;noMatchingSourceFilterData&quot;</span>
     <span class="n">NOT_REGISTERED</span> <span class="o">=</span> <span class="s2">&quot;notRegistered&quot;</span>
     <span class="n">PROHIBITED_BY_BROWSER_POLICY</span> <span class="o">=</span> <span class="s2">&quot;prohibitedByBrowserPolicy&quot;</span>

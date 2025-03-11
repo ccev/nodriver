@@ -6,18 +6,15 @@
 # CDP domain: Network
 
 from __future__ import annotations
+
 import enum
 import typing
 from dataclasses import dataclass
-from .util import event_class, T_JSON_DICT
 
-from . import debugger
-from . import emulation
-from . import io
-from . import page
-from . import runtime
-from . import security
 from deprecated.sphinx import deprecated  # type: ignore
+
+from . import debugger, emulation, io, page, runtime, security
+from .util import T_JSON_DICT, event_class
 
 
 class ResourceType(enum.Enum):
@@ -70,7 +67,9 @@ class LoaderId(str):
 
 class RequestId(str):
     """
-    Unique request identifier.
+    Unique network request identifier.
+    Note that this does not identify individual HTTP requests that are part of
+    a network request.
     """
 
     def to_json(self) -> str:
@@ -1410,6 +1409,7 @@ class Initiator:
     type_: str
 
     #: Initiator JavaScript stack trace, set for Script only.
+    #: Requires the Debugger domain to be enabled.
     stack: typing.Optional[runtime.StackTrace] = None
 
     #: Initiator URL, set for Parser type or for Script type (when script is importing module) or for SignedExchange type.
@@ -1676,6 +1676,8 @@ class CookieBlockedReason(enum.Enum):
     )
     SAME_PARTY_FROM_CROSS_PARTY_CONTEXT = "SamePartyFromCrossPartyContext"
     NAME_VALUE_PAIR_EXCEEDS_MAX_SIZE = "NameValuePairExceedsMaxSize"
+    PORT_MISMATCH = "PortMismatch"
+    SCHEME_MISMATCH = "SchemeMismatch"
 
     def to_json(self) -> str:
         return self.value
@@ -1694,11 +1696,11 @@ class CookieExemptionReason(enum.Enum):
     USER_SETTING = "UserSetting"
     TPCD_METADATA = "TPCDMetadata"
     TPCD_DEPRECATION_TRIAL = "TPCDDeprecationTrial"
+    TOP_LEVEL_TPCD_DEPRECATION_TRIAL = "TopLevelTPCDDeprecationTrial"
     TPCD_HEURISTICS = "TPCDHeuristics"
     ENTERPRISE_POLICY = "EnterprisePolicy"
     STORAGE_ACCESS = "StorageAccess"
     TOP_LEVEL_STORAGE_ACCESS = "TopLevelStorageAccess"
-    CORS_OPT_IN = "CorsOptIn"
     SCHEME = "Scheme"
 
     def to_json(self) -> str:
@@ -2441,6 +2443,7 @@ class CrossOriginOpenerPolicyValue(enum.Enum):
     UNSAFE_NONE = "UnsafeNone"
     SAME_ORIGIN_PLUS_COEP = "SameOriginPlusCoep"
     RESTRICT_PROPERTIES_PLUS_COEP = "RestrictPropertiesPlusCoep"
+    NOOPENER_ALLOW_POPUPS = "NoopenerAllowPopups"
 
     def to_json(self) -> str:
         return self.value

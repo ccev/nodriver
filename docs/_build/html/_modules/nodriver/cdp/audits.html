@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>nodriver.cdp.audits - nodriver documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
@@ -180,6 +180,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/audits.html">Audits</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/autofill.html">Autofill</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/background_service.html">BackgroundService</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/bluetooth_emulation.html">BluetoothEmulation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/browser.html">Browser</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/cache_storage.html">CacheStorage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/cast.html">Cast</a></li>
@@ -198,6 +199,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/extensions.html">Extensions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/fed_cm.html">FedCm</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/fetch.html">Fetch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/file_system.html">FileSystem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/headless_experimental.html">HeadlessExperimental</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/heap_profiler.html">HeapProfiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/indexed_db.html">IndexedDB</a></li>
@@ -270,15 +272,13 @@
 <span class="c1"># CDP domain: Audits (experimental)</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
 <span class="kn">import</span> <span class="nn">enum</span>
 <span class="kn">import</span> <span class="nn">typing</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">event_class</span><span class="p">,</span> <span class="n">T_JSON_DICT</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">dom</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">network</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">page</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">runtime</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">dom</span><span class="p">,</span> <span class="n">network</span><span class="p">,</span> <span class="n">page</span><span class="p">,</span> <span class="n">runtime</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">T_JSON_DICT</span><span class="p">,</span> <span class="n">event_class</span>
 
 
 <div class="viewcode-block" id="AffectedCookie">
@@ -381,6 +381,8 @@
         <span class="s2">&quot;ExcludeThirdPartyCookieBlockedInFirstPartySet&quot;</span>
     <span class="p">)</span>
     <span class="n">EXCLUDE_THIRD_PARTY_PHASEOUT</span> <span class="o">=</span> <span class="s2">&quot;ExcludeThirdPartyPhaseout&quot;</span>
+    <span class="n">EXCLUDE_PORT_MISMATCH</span> <span class="o">=</span> <span class="s2">&quot;ExcludePortMismatch&quot;</span>
+    <span class="n">EXCLUDE_SCHEME_MISMATCH</span> <span class="o">=</span> <span class="s2">&quot;ExcludeSchemeMismatch&quot;</span>
 
     <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
@@ -414,6 +416,8 @@
     <span class="n">WARN_CROSS_SITE_REDIRECT_DOWNGRADE_CHANGES_INCLUSION</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s2">&quot;WarnCrossSiteRedirectDowngradeChangesInclusion&quot;</span>
     <span class="p">)</span>
+    <span class="n">WARN_DEPRECATION_TRIAL_METADATA</span> <span class="o">=</span> <span class="s2">&quot;WarnDeprecationTrialMetadata&quot;</span>
+    <span class="n">WARN_THIRD_PARTY_COOKIE_HEURISTIC</span> <span class="o">=</span> <span class="s2">&quot;WarnThirdPartyCookieHeuristic&quot;</span>
 
     <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
@@ -1108,6 +1112,9 @@
     <span class="n">NO_REGISTER_TRIGGER_HEADER</span> <span class="o">=</span> <span class="s2">&quot;NoRegisterTriggerHeader&quot;</span>
     <span class="n">NO_REGISTER_OS_SOURCE_HEADER</span> <span class="o">=</span> <span class="s2">&quot;NoRegisterOsSourceHeader&quot;</span>
     <span class="n">NO_REGISTER_OS_TRIGGER_HEADER</span> <span class="o">=</span> <span class="s2">&quot;NoRegisterOsTriggerHeader&quot;</span>
+    <span class="n">NAVIGATION_REGISTRATION_UNIQUE_SCOPE_ALREADY_SET</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;NavigationRegistrationUniqueScopeAlreadySet&quot;</span>
+    <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
@@ -1307,7 +1314,6 @@
 <div class="viewcode-block" id="GenericIssueErrorType">
 <a class="viewcode-back" href="../../../nodriver/cdp/audits.html#nodriver.cdp.audits.GenericIssueErrorType">[docs]</a>
 <span class="k">class</span> <span class="nc">GenericIssueErrorType</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
-    <span class="n">CROSS_ORIGIN_PORTAL_POST_MESSAGE_ERROR</span> <span class="o">=</span> <span class="s2">&quot;CrossOriginPortalPostMessageError&quot;</span>
     <span class="n">FORM_LABEL_FOR_NAME_ERROR</span> <span class="o">=</span> <span class="s2">&quot;FormLabelForNameError&quot;</span>
     <span class="n">FORM_DUPLICATE_ID_FOR_INPUT_ERROR</span> <span class="o">=</span> <span class="s2">&quot;FormDuplicateIdForInputError&quot;</span>
     <span class="n">FORM_INPUT_WITH_NO_LABEL_ERROR</span> <span class="o">=</span> <span class="s2">&quot;FormInputWithNoLabelError&quot;</span>
@@ -1592,7 +1598,7 @@
     <span class="n">THIRD_PARTY_COOKIES_BLOCKED</span> <span class="o">=</span> <span class="s2">&quot;ThirdPartyCookiesBlocked&quot;</span>
     <span class="n">NOT_SIGNED_IN_WITH_IDP</span> <span class="o">=</span> <span class="s2">&quot;NotSignedInWithIdp&quot;</span>
     <span class="n">MISSING_TRANSIENT_USER_ACTIVATION</span> <span class="o">=</span> <span class="s2">&quot;MissingTransientUserActivation&quot;</span>
-    <span class="n">REPLACED_BY_BUTTON_MODE</span> <span class="o">=</span> <span class="s2">&quot;ReplacedByButtonMode&quot;</span>
+    <span class="n">REPLACED_BY_ACTIVE_MODE</span> <span class="o">=</span> <span class="s2">&quot;ReplacedByActiveMode&quot;</span>
     <span class="n">INVALID_FIELDS_SPECIFIED</span> <span class="o">=</span> <span class="s2">&quot;InvalidFieldsSpecified&quot;</span>
     <span class="n">RELYING_PARTY_ORIGIN_IS_OPAQUE</span> <span class="o">=</span> <span class="s2">&quot;RelyingPartyOriginIsOpaque&quot;</span>
     <span class="n">TYPE_NOT_MATCHING</span> <span class="o">=</span> <span class="s2">&quot;TypeNotMatching&quot;</span>

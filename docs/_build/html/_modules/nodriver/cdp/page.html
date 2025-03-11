@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>nodriver.cdp.page - nodriver documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
@@ -180,6 +180,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/audits.html">Audits</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/autofill.html">Autofill</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/background_service.html">BackgroundService</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/bluetooth_emulation.html">BluetoothEmulation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/browser.html">Browser</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/cache_storage.html">CacheStorage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/cast.html">Cast</a></li>
@@ -198,6 +199,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/extensions.html">Extensions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/fed_cm.html">FedCm</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/fetch.html">Fetch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/file_system.html">FileSystem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/headless_experimental.html">HeadlessExperimental</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/heap_profiler.html">HeapProfiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/indexed_db.html">IndexedDB</a></li>
@@ -270,18 +272,15 @@
 <span class="c1"># CDP domain: Page</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
 <span class="kn">import</span> <span class="nn">enum</span>
 <span class="kn">import</span> <span class="nn">typing</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">event_class</span><span class="p">,</span> <span class="n">T_JSON_DICT</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">debugger</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">dom</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">emulation</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">io</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">network</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">runtime</span>
 <span class="kn">from</span> <span class="nn">deprecated.sphinx</span> <span class="kn">import</span> <span class="n">deprecated</span>  <span class="c1"># type: ignore</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">debugger</span><span class="p">,</span> <span class="n">dom</span><span class="p">,</span> <span class="n">emulation</span><span class="p">,</span> <span class="n">io</span><span class="p">,</span> <span class="n">network</span><span class="p">,</span> <span class="n">runtime</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">T_JSON_DICT</span><span class="p">,</span> <span class="n">event_class</span>
 
 
 <div class="viewcode-block" id="FrameId">
@@ -469,6 +468,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">ACCELEROMETER</span> <span class="o">=</span> <span class="s2">&quot;accelerometer&quot;</span>
+    <span class="n">ALL_SCREENS_CAPTURE</span> <span class="o">=</span> <span class="s2">&quot;all-screens-capture&quot;</span>
     <span class="n">AMBIENT_LIGHT_SENSOR</span> <span class="o">=</span> <span class="s2">&quot;ambient-light-sensor&quot;</span>
     <span class="n">ATTRIBUTION_REPORTING</span> <span class="o">=</span> <span class="s2">&quot;attribution-reporting&quot;</span>
     <span class="n">AUTOPLAY</span> <span class="o">=</span> <span class="s2">&quot;autoplay&quot;</span>
@@ -502,14 +502,19 @@
     <span class="n">CLIPBOARD_READ</span> <span class="o">=</span> <span class="s2">&quot;clipboard-read&quot;</span>
     <span class="n">CLIPBOARD_WRITE</span> <span class="o">=</span> <span class="s2">&quot;clipboard-write&quot;</span>
     <span class="n">COMPUTE_PRESSURE</span> <span class="o">=</span> <span class="s2">&quot;compute-pressure&quot;</span>
+    <span class="n">CONTROLLED_FRAME</span> <span class="o">=</span> <span class="s2">&quot;controlled-frame&quot;</span>
     <span class="n">CROSS_ORIGIN_ISOLATED</span> <span class="o">=</span> <span class="s2">&quot;cross-origin-isolated&quot;</span>
     <span class="n">DEFERRED_FETCH</span> <span class="o">=</span> <span class="s2">&quot;deferred-fetch&quot;</span>
+    <span class="n">DEFERRED_FETCH_MINIMAL</span> <span class="o">=</span> <span class="s2">&quot;deferred-fetch-minimal&quot;</span>
+    <span class="n">DIGITAL_CREDENTIALS_GET</span> <span class="o">=</span> <span class="s2">&quot;digital-credentials-get&quot;</span>
     <span class="n">DIRECT_SOCKETS</span> <span class="o">=</span> <span class="s2">&quot;direct-sockets&quot;</span>
+    <span class="n">DIRECT_SOCKETS_PRIVATE</span> <span class="o">=</span> <span class="s2">&quot;direct-sockets-private&quot;</span>
     <span class="n">DISPLAY_CAPTURE</span> <span class="o">=</span> <span class="s2">&quot;display-capture&quot;</span>
     <span class="n">DOCUMENT_DOMAIN</span> <span class="o">=</span> <span class="s2">&quot;document-domain&quot;</span>
     <span class="n">ENCRYPTED_MEDIA</span> <span class="o">=</span> <span class="s2">&quot;encrypted-media&quot;</span>
     <span class="n">EXECUTION_WHILE_OUT_OF_VIEWPORT</span> <span class="o">=</span> <span class="s2">&quot;execution-while-out-of-viewport&quot;</span>
     <span class="n">EXECUTION_WHILE_NOT_RENDERED</span> <span class="o">=</span> <span class="s2">&quot;execution-while-not-rendered&quot;</span>
+    <span class="n">FENCED_UNPARTITIONED_STORAGE_READ</span> <span class="o">=</span> <span class="s2">&quot;fenced-unpartitioned-storage-read&quot;</span>
     <span class="n">FOCUS_WITHOUT_USER_ACTIVATION</span> <span class="o">=</span> <span class="s2">&quot;focus-without-user-activation&quot;</span>
     <span class="n">FULLSCREEN</span> <span class="o">=</span> <span class="s2">&quot;fullscreen&quot;</span>
     <span class="n">FROBULATE</span> <span class="o">=</span> <span class="s2">&quot;frobulate&quot;</span>
@@ -524,11 +529,13 @@
     <span class="n">KEYBOARD_MAP</span> <span class="o">=</span> <span class="s2">&quot;keyboard-map&quot;</span>
     <span class="n">LOCAL_FONTS</span> <span class="o">=</span> <span class="s2">&quot;local-fonts&quot;</span>
     <span class="n">MAGNETOMETER</span> <span class="o">=</span> <span class="s2">&quot;magnetometer&quot;</span>
+    <span class="n">MEDIA_PLAYBACK_WHILE_NOT_VISIBLE</span> <span class="o">=</span> <span class="s2">&quot;media-playback-while-not-visible&quot;</span>
     <span class="n">MICROPHONE</span> <span class="o">=</span> <span class="s2">&quot;microphone&quot;</span>
     <span class="n">MIDI</span> <span class="o">=</span> <span class="s2">&quot;midi&quot;</span>
     <span class="n">OTP_CREDENTIALS</span> <span class="o">=</span> <span class="s2">&quot;otp-credentials&quot;</span>
     <span class="n">PAYMENT</span> <span class="o">=</span> <span class="s2">&quot;payment&quot;</span>
     <span class="n">PICTURE_IN_PICTURE</span> <span class="o">=</span> <span class="s2">&quot;picture-in-picture&quot;</span>
+    <span class="n">POPINS</span> <span class="o">=</span> <span class="s2">&quot;popins&quot;</span>
     <span class="n">PRIVATE_AGGREGATION</span> <span class="o">=</span> <span class="s2">&quot;private-aggregation&quot;</span>
     <span class="n">PRIVATE_STATE_TOKEN_ISSUANCE</span> <span class="o">=</span> <span class="s2">&quot;private-state-token-issuance&quot;</span>
     <span class="n">PRIVATE_STATE_TOKEN_REDEMPTION</span> <span class="o">=</span> <span class="s2">&quot;private-state-token-redemption&quot;</span>
@@ -549,6 +556,7 @@
     <span class="n">USB</span> <span class="o">=</span> <span class="s2">&quot;usb&quot;</span>
     <span class="n">USB_UNRESTRICTED</span> <span class="o">=</span> <span class="s2">&quot;usb-unrestricted&quot;</span>
     <span class="n">VERTICAL_SCROLL</span> <span class="o">=</span> <span class="s2">&quot;vertical-scroll&quot;</span>
+    <span class="n">WEB_APP_INSTALLATION</span> <span class="o">=</span> <span class="s2">&quot;web-app-installation&quot;</span>
     <span class="n">WEB_PRINTING</span> <span class="o">=</span> <span class="s2">&quot;web-printing&quot;</span>
     <span class="n">WEB_SHARE</span> <span class="o">=</span> <span class="s2">&quot;web-share&quot;</span>
     <span class="n">WINDOW_MANAGEMENT</span> <span class="o">=</span> <span class="s2">&quot;window-management&quot;</span>
@@ -1593,14 +1601,16 @@
 <div class="viewcode-block" id="ClientNavigationReason">
 <a class="viewcode-back" href="../../../nodriver/cdp/page.html#nodriver.cdp.page.ClientNavigationReason">[docs]</a>
 <span class="k">class</span> <span class="nc">ClientNavigationReason</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">ANCHOR_CLICK</span> <span class="o">=</span> <span class="s2">&quot;anchorClick&quot;</span>
     <span class="n">FORM_SUBMISSION_GET</span> <span class="o">=</span> <span class="s2">&quot;formSubmissionGet&quot;</span>
     <span class="n">FORM_SUBMISSION_POST</span> <span class="o">=</span> <span class="s2">&quot;formSubmissionPost&quot;</span>
     <span class="n">HTTP_HEADER_REFRESH</span> <span class="o">=</span> <span class="s2">&quot;httpHeaderRefresh&quot;</span>
-    <span class="n">SCRIPT_INITIATED</span> <span class="o">=</span> <span class="s2">&quot;scriptInitiated&quot;</span>
+    <span class="n">INITIAL_FRAME_NAVIGATION</span> <span class="o">=</span> <span class="s2">&quot;initialFrameNavigation&quot;</span>
     <span class="n">META_TAG_REFRESH</span> <span class="o">=</span> <span class="s2">&quot;metaTagRefresh&quot;</span>
+    <span class="n">OTHER</span> <span class="o">=</span> <span class="s2">&quot;other&quot;</span>
     <span class="n">PAGE_BLOCK_INTERSTITIAL</span> <span class="o">=</span> <span class="s2">&quot;pageBlockInterstitial&quot;</span>
     <span class="n">RELOAD</span> <span class="o">=</span> <span class="s2">&quot;reload&quot;</span>
-    <span class="n">ANCHOR_CLICK</span> <span class="o">=</span> <span class="s2">&quot;anchorClick&quot;</span>
+    <span class="n">SCRIPT_INITIATED</span> <span class="o">=</span> <span class="s2">&quot;scriptInitiated&quot;</span>
 
     <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
@@ -2408,7 +2418,6 @@
     <span class="n">PRINTING</span> <span class="o">=</span> <span class="s2">&quot;Printing&quot;</span>
     <span class="n">WEB_DATABASE</span> <span class="o">=</span> <span class="s2">&quot;WebDatabase&quot;</span>
     <span class="n">PICTURE_IN_PICTURE</span> <span class="o">=</span> <span class="s2">&quot;PictureInPicture&quot;</span>
-    <span class="n">PORTAL</span> <span class="o">=</span> <span class="s2">&quot;Portal&quot;</span>
     <span class="n">SPEECH_RECOGNIZER</span> <span class="o">=</span> <span class="s2">&quot;SpeechRecognizer&quot;</span>
     <span class="n">IDLE_MANAGER</span> <span class="o">=</span> <span class="s2">&quot;IdleManager&quot;</span>
     <span class="n">PAYMENT_MANAGER</span> <span class="o">=</span> <span class="s2">&quot;PaymentManager&quot;</span>
@@ -2441,6 +2450,7 @@
     <span class="n">CONTENT_WEB_USB</span> <span class="o">=</span> <span class="s2">&quot;ContentWebUSB&quot;</span>
     <span class="n">CONTENT_MEDIA_SESSION_SERVICE</span> <span class="o">=</span> <span class="s2">&quot;ContentMediaSessionService&quot;</span>
     <span class="n">CONTENT_SCREEN_READER</span> <span class="o">=</span> <span class="s2">&quot;ContentScreenReader&quot;</span>
+    <span class="n">CONTENT_DISCARDED</span> <span class="o">=</span> <span class="s2">&quot;ContentDiscarded&quot;</span>
     <span class="n">EMBEDDER_POPUP_BLOCKER_TAB_HELPER</span> <span class="o">=</span> <span class="s2">&quot;EmbedderPopupBlockerTabHelper&quot;</span>
     <span class="n">EMBEDDER_SAFE_BROWSING_TRIGGERED_POPUP_BLOCKER</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s2">&quot;EmbedderSafeBrowsingTriggeredPopupBlocker&quot;</span>
@@ -2465,6 +2475,7 @@
         <span class="s2">&quot;EmbedderExtensionSentMessageToCachedFrame&quot;</span>
     <span class="p">)</span>
     <span class="n">REQUESTED_BY_WEB_VIEW_CLIENT</span> <span class="o">=</span> <span class="s2">&quot;RequestedByWebViewClient&quot;</span>
+    <span class="n">POST_MESSAGE_BY_WEB_VIEW_CLIENT</span> <span class="o">=</span> <span class="s2">&quot;PostMessageByWebViewClient&quot;</span>
 
     <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
@@ -4331,6 +4342,27 @@
 
 
 
+<div class="viewcode-block" id="FrameSubtreeWillBeDetached">
+<a class="viewcode-back" href="../../../nodriver/cdp/page.html#nodriver.cdp.page.FrameSubtreeWillBeDetached">[docs]</a>
+<span class="nd">@event_class</span><span class="p">(</span><span class="s2">&quot;Page.frameSubtreeWillBeDetached&quot;</span><span class="p">)</span>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">FrameSubtreeWillBeDetached</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    **EXPERIMENTAL**</span>
+
+<span class="sd">    Fired before frame subtree is detached. Emitted before any frame of the</span>
+<span class="sd">    subtree is actually detached.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#: Id of the frame that is the root of the subtree that will be detached.</span>
+    <span class="n">frame_id</span><span class="p">:</span> <span class="n">FrameId</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">json</span><span class="p">:</span> <span class="n">T_JSON_DICT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FrameSubtreeWillBeDetached</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">frame_id</span><span class="o">=</span><span class="n">FrameId</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;frameId&quot;</span><span class="p">]))</span></div>
+
+
+
 <div class="viewcode-block" id="FrameNavigated">
 <a class="viewcode-back" href="../../../nodriver/cdp/page.html#nodriver.cdp.page.FrameNavigated">[docs]</a>
 <span class="nd">@event_class</span><span class="p">(</span><span class="s2">&quot;Page.frameNavigated&quot;</span><span class="p">)</span>
@@ -4655,7 +4687,8 @@
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">LifecycleEvent</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Fired for top level page lifecycle events such as navigation, load, paint, etc.</span>
+<span class="sd">    Fired for lifecycle events (navigation, load, paint, etc) in the current</span>
+<span class="sd">    target (including local frames).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1">#: Id of the frame.</span>
@@ -4749,10 +4782,16 @@
     <span class="n">frame_id</span><span class="p">:</span> <span class="n">FrameId</span>
     <span class="c1">#: Frame&#39;s new url.</span>
     <span class="n">url</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="c1">#: Navigation type</span>
+    <span class="n">navigation_type</span><span class="p">:</span> <span class="nb">str</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">json</span><span class="p">:</span> <span class="n">T_JSON_DICT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NavigatedWithinDocument</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">frame_id</span><span class="o">=</span><span class="n">FrameId</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;frameId&quot;</span><span class="p">]),</span> <span class="n">url</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">]))</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">frame_id</span><span class="o">=</span><span class="n">FrameId</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;frameId&quot;</span><span class="p">]),</span>
+            <span class="n">url</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">]),</span>
+            <span class="n">navigation_type</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">json</span><span class="p">[</span><span class="s2">&quot;navigationType&quot;</span><span class="p">]),</span>
+        <span class="p">)</span></div>
 
 
 

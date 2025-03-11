@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>nodriver.cdp.preload - nodriver documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
@@ -180,6 +180,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/audits.html">Audits</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/autofill.html">Autofill</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/background_service.html">BackgroundService</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/bluetooth_emulation.html">BluetoothEmulation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/browser.html">Browser</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/cache_storage.html">CacheStorage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/cast.html">Cast</a></li>
@@ -198,6 +199,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/extensions.html">Extensions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/fed_cm.html">FedCm</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/fetch.html">Fetch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/file_system.html">FileSystem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/headless_experimental.html">HeadlessExperimental</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/heap_profiler.html">HeapProfiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/indexed_db.html">IndexedDB</a></li>
@@ -270,14 +272,13 @@
 <span class="c1"># CDP domain: Preload (experimental)</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
 <span class="kn">import</span> <span class="nn">enum</span>
 <span class="kn">import</span> <span class="nn">typing</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">event_class</span><span class="p">,</span> <span class="n">T_JSON_DICT</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">dom</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">network</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">page</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">dom</span><span class="p">,</span> <span class="n">network</span><span class="p">,</span> <span class="n">page</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">T_JSON_DICT</span><span class="p">,</span> <span class="n">event_class</span>
 
 
 <div class="viewcode-block" id="RuleSetId">
@@ -631,6 +632,11 @@
     <span class="n">JAVA_SCRIPT_INTERFACE_ADDED</span> <span class="o">=</span> <span class="s2">&quot;JavaScriptInterfaceAdded&quot;</span>
     <span class="n">JAVA_SCRIPT_INTERFACE_REMOVED</span> <span class="o">=</span> <span class="s2">&quot;JavaScriptInterfaceRemoved&quot;</span>
     <span class="n">ALL_PRERENDERING_CANCELED</span> <span class="o">=</span> <span class="s2">&quot;AllPrerenderingCanceled&quot;</span>
+    <span class="n">WINDOW_CLOSED</span> <span class="o">=</span> <span class="s2">&quot;WindowClosed&quot;</span>
+    <span class="n">SLOW_NETWORK</span> <span class="o">=</span> <span class="s2">&quot;SlowNetwork&quot;</span>
+    <span class="n">OTHER_PRERENDERED_PAGE_ACTIVATED</span> <span class="o">=</span> <span class="s2">&quot;OtherPrerenderedPageActivated&quot;</span>
+    <span class="n">V8_OPTIMIZER_DISABLED</span> <span class="o">=</span> <span class="s2">&quot;V8OptimizerDisabled&quot;</span>
+    <span class="n">PRERENDER_FAILED_DURING_PREFETCH</span> <span class="o">=</span> <span class="s2">&quot;PrerenderFailedDuringPrefetch&quot;</span>
 
     <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
@@ -679,7 +685,6 @@
     <span class="n">PREFETCH_FAILED_MIME_NOT_SUPPORTED</span> <span class="o">=</span> <span class="s2">&quot;PrefetchFailedMIMENotSupported&quot;</span>
     <span class="n">PREFETCH_FAILED_NET_ERROR</span> <span class="o">=</span> <span class="s2">&quot;PrefetchFailedNetError&quot;</span>
     <span class="n">PREFETCH_FAILED_NON2_XX</span> <span class="o">=</span> <span class="s2">&quot;PrefetchFailedNon2XX&quot;</span>
-    <span class="n">PREFETCH_FAILED_PER_PAGE_LIMIT_EXCEEDED</span> <span class="o">=</span> <span class="s2">&quot;PrefetchFailedPerPageLimitExceeded&quot;</span>
     <span class="n">PREFETCH_EVICTED_AFTER_CANDIDATE_REMOVED</span> <span class="o">=</span> <span class="s2">&quot;PrefetchEvictedAfterCandidateRemoved&quot;</span>
     <span class="n">PREFETCH_EVICTED_FOR_NEWER_PREFETCH</span> <span class="o">=</span> <span class="s2">&quot;PrefetchEvictedForNewerPrefetch&quot;</span>
     <span class="n">PREFETCH_HELDBACK</span> <span class="o">=</span> <span class="s2">&quot;PrefetchHeldback&quot;</span>

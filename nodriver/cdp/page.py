@@ -6,18 +6,15 @@
 # CDP domain: Page
 
 from __future__ import annotations
+
 import enum
 import typing
 from dataclasses import dataclass
-from .util import event_class, T_JSON_DICT
 
-from . import debugger
-from . import dom
-from . import emulation
-from . import io
-from . import network
-from . import runtime
 from deprecated.sphinx import deprecated  # type: ignore
+
+from . import debugger, dom, emulation, io, network, runtime
+from .util import T_JSON_DICT, event_class
 
 
 class FrameId(str):
@@ -179,6 +176,7 @@ class PermissionsPolicyFeature(enum.Enum):
     """
 
     ACCELEROMETER = "accelerometer"
+    ALL_SCREENS_CAPTURE = "all-screens-capture"
     AMBIENT_LIGHT_SENSOR = "ambient-light-sensor"
     ATTRIBUTION_REPORTING = "attribution-reporting"
     AUTOPLAY = "autoplay"
@@ -212,14 +210,19 @@ class PermissionsPolicyFeature(enum.Enum):
     CLIPBOARD_READ = "clipboard-read"
     CLIPBOARD_WRITE = "clipboard-write"
     COMPUTE_PRESSURE = "compute-pressure"
+    CONTROLLED_FRAME = "controlled-frame"
     CROSS_ORIGIN_ISOLATED = "cross-origin-isolated"
     DEFERRED_FETCH = "deferred-fetch"
+    DEFERRED_FETCH_MINIMAL = "deferred-fetch-minimal"
+    DIGITAL_CREDENTIALS_GET = "digital-credentials-get"
     DIRECT_SOCKETS = "direct-sockets"
+    DIRECT_SOCKETS_PRIVATE = "direct-sockets-private"
     DISPLAY_CAPTURE = "display-capture"
     DOCUMENT_DOMAIN = "document-domain"
     ENCRYPTED_MEDIA = "encrypted-media"
     EXECUTION_WHILE_OUT_OF_VIEWPORT = "execution-while-out-of-viewport"
     EXECUTION_WHILE_NOT_RENDERED = "execution-while-not-rendered"
+    FENCED_UNPARTITIONED_STORAGE_READ = "fenced-unpartitioned-storage-read"
     FOCUS_WITHOUT_USER_ACTIVATION = "focus-without-user-activation"
     FULLSCREEN = "fullscreen"
     FROBULATE = "frobulate"
@@ -234,11 +237,13 @@ class PermissionsPolicyFeature(enum.Enum):
     KEYBOARD_MAP = "keyboard-map"
     LOCAL_FONTS = "local-fonts"
     MAGNETOMETER = "magnetometer"
+    MEDIA_PLAYBACK_WHILE_NOT_VISIBLE = "media-playback-while-not-visible"
     MICROPHONE = "microphone"
     MIDI = "midi"
     OTP_CREDENTIALS = "otp-credentials"
     PAYMENT = "payment"
     PICTURE_IN_PICTURE = "picture-in-picture"
+    POPINS = "popins"
     PRIVATE_AGGREGATION = "private-aggregation"
     PRIVATE_STATE_TOKEN_ISSUANCE = "private-state-token-issuance"
     PRIVATE_STATE_TOKEN_REDEMPTION = "private-state-token-redemption"
@@ -259,6 +264,7 @@ class PermissionsPolicyFeature(enum.Enum):
     USB = "usb"
     USB_UNRESTRICTED = "usb-unrestricted"
     VERTICAL_SCROLL = "vertical-scroll"
+    WEB_APP_INSTALLATION = "web-app-installation"
     WEB_PRINTING = "web-printing"
     WEB_SHARE = "web-share"
     WINDOW_MANAGEMENT = "window-management"
@@ -1222,14 +1228,16 @@ class FontSizes:
 
 
 class ClientNavigationReason(enum.Enum):
+    ANCHOR_CLICK = "anchorClick"
     FORM_SUBMISSION_GET = "formSubmissionGet"
     FORM_SUBMISSION_POST = "formSubmissionPost"
     HTTP_HEADER_REFRESH = "httpHeaderRefresh"
-    SCRIPT_INITIATED = "scriptInitiated"
+    INITIAL_FRAME_NAVIGATION = "initialFrameNavigation"
     META_TAG_REFRESH = "metaTagRefresh"
+    OTHER = "other"
     PAGE_BLOCK_INTERSTITIAL = "pageBlockInterstitial"
     RELOAD = "reload"
-    ANCHOR_CLICK = "anchorClick"
+    SCRIPT_INITIATED = "scriptInitiated"
 
     def to_json(self) -> str:
         return self.value
@@ -1980,7 +1988,6 @@ class BackForwardCacheNotRestoredReason(enum.Enum):
     PRINTING = "Printing"
     WEB_DATABASE = "WebDatabase"
     PICTURE_IN_PICTURE = "PictureInPicture"
-    PORTAL = "Portal"
     SPEECH_RECOGNIZER = "SpeechRecognizer"
     IDLE_MANAGER = "IdleManager"
     PAYMENT_MANAGER = "PaymentManager"
@@ -2013,6 +2020,7 @@ class BackForwardCacheNotRestoredReason(enum.Enum):
     CONTENT_WEB_USB = "ContentWebUSB"
     CONTENT_MEDIA_SESSION_SERVICE = "ContentMediaSessionService"
     CONTENT_SCREEN_READER = "ContentScreenReader"
+    CONTENT_DISCARDED = "ContentDiscarded"
     EMBEDDER_POPUP_BLOCKER_TAB_HELPER = "EmbedderPopupBlockerTabHelper"
     EMBEDDER_SAFE_BROWSING_TRIGGERED_POPUP_BLOCKER = (
         "EmbedderSafeBrowsingTriggeredPopupBlocker"
@@ -2037,6 +2045,7 @@ class BackForwardCacheNotRestoredReason(enum.Enum):
         "EmbedderExtensionSentMessageToCachedFrame"
     )
     REQUESTED_BY_WEB_VIEW_CLIENT = "RequestedByWebViewClient"
+    POST_MESSAGE_BY_WEB_VIEW_CLIENT = "PostMessageByWebViewClient"
 
     def to_json(self) -> str:
         return self.value
@@ -3695,6 +3704,24 @@ class FrameDetached:
         )
 
 
+@event_class("Page.frameSubtreeWillBeDetached")
+@dataclass
+class FrameSubtreeWillBeDetached:
+    """
+    **EXPERIMENTAL**
+
+    Fired before frame subtree is detached. Emitted before any frame of the
+    subtree is actually detached.
+    """
+
+    #: Id of the frame that is the root of the subtree that will be detached.
+    frame_id: FrameId
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> FrameSubtreeWillBeDetached:
+        return cls(frame_id=FrameId.from_json(json["frameId"]))
+
+
 @event_class("Page.frameNavigated")
 @dataclass
 class FrameNavigated:
@@ -3978,7 +4005,8 @@ class JavascriptDialogOpening:
 @dataclass
 class LifecycleEvent:
     """
-    Fired for top level page lifecycle events such as navigation, load, paint, etc.
+    Fired for lifecycle events (navigation, load, paint, etc) in the current
+    target (including local frames).
     """
 
     #: Id of the frame.
@@ -4063,10 +4091,16 @@ class NavigatedWithinDocument:
     frame_id: FrameId
     #: Frame's new url.
     url: str
+    #: Navigation type
+    navigation_type: str
 
     @classmethod
     def from_json(cls, json: T_JSON_DICT) -> NavigatedWithinDocument:
-        return cls(frame_id=FrameId.from_json(json["frameId"]), url=str(json["url"]))
+        return cls(
+            frame_id=FrameId.from_json(json["frameId"]),
+            url=str(json["url"]),
+            navigation_type=str(json["navigationType"]),
+        )
 
 
 @event_class("Page.screencastFrame")

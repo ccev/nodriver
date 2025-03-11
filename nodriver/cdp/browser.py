@@ -6,13 +6,13 @@
 # CDP domain: Browser
 
 from __future__ import annotations
+
 import enum
 import typing
 from dataclasses import dataclass
-from .util import event_class, T_JSON_DICT
 
-from . import page
-from . import target
+from . import page, target
+from .util import T_JSON_DICT, event_class
 
 
 class BrowserContextID(str):
@@ -138,6 +138,7 @@ class PermissionType(enum.Enum):
     VIDEO_CAPTURE_PAN_TILT_ZOOM = "videoCapturePanTiltZoom"
     WAKE_LOCK_SCREEN = "wakeLockScreen"
     WAKE_LOCK_SYSTEM = "wakeLockSystem"
+    WEB_APP_INSTALLATION = "webAppInstallation"
     WINDOW_MANAGEMENT = "windowManagement"
 
     def to_json(self) -> str:

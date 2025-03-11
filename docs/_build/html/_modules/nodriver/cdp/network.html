@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>nodriver.cdp.network - nodriver documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
@@ -180,6 +180,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/audits.html">Audits</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/autofill.html">Autofill</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/background_service.html">BackgroundService</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/bluetooth_emulation.html">BluetoothEmulation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/browser.html">Browser</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/cache_storage.html">CacheStorage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/cast.html">Cast</a></li>
@@ -198,6 +199,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/extensions.html">Extensions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/fed_cm.html">FedCm</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/fetch.html">Fetch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/file_system.html">FileSystem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/headless_experimental.html">HeadlessExperimental</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/heap_profiler.html">HeapProfiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../nodriver/cdp/indexed_db.html">IndexedDB</a></li>
@@ -270,18 +272,15 @@
 <span class="c1"># CDP domain: Network</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
 <span class="kn">import</span> <span class="nn">enum</span>
 <span class="kn">import</span> <span class="nn">typing</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">event_class</span><span class="p">,</span> <span class="n">T_JSON_DICT</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">debugger</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">emulation</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">io</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">page</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">runtime</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">security</span>
 <span class="kn">from</span> <span class="nn">deprecated.sphinx</span> <span class="kn">import</span> <span class="n">deprecated</span>  <span class="c1"># type: ignore</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">debugger</span><span class="p">,</span> <span class="n">emulation</span><span class="p">,</span> <span class="n">io</span><span class="p">,</span> <span class="n">page</span><span class="p">,</span> <span class="n">runtime</span><span class="p">,</span> <span class="n">security</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">T_JSON_DICT</span><span class="p">,</span> <span class="n">event_class</span>
 
 
 <div class="viewcode-block" id="ResourceType">
@@ -342,7 +341,9 @@
 <a class="viewcode-back" href="../../../nodriver/cdp/network.html#nodriver.cdp.network.RequestId">[docs]</a>
 <span class="k">class</span> <span class="nc">RequestId</span><span class="p">(</span><span class="nb">str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Unique request identifier.</span>
+<span class="sd">    Unique network request identifier.</span>
+<span class="sd">    Note that this does not identify individual HTTP requests that are part of</span>
+<span class="sd">    a network request.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1775,6 +1776,7 @@
     <span class="n">type_</span><span class="p">:</span> <span class="nb">str</span>
 
     <span class="c1">#: Initiator JavaScript stack trace, set for Script only.</span>
+    <span class="c1">#: Requires the Debugger domain to be enabled.</span>
     <span class="n">stack</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">runtime</span><span class="o">.</span><span class="n">StackTrace</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="c1">#: Initiator URL, set for Parser type or for Script type (when script is importing module) or for SignedExchange type.</span>
@@ -2053,6 +2055,8 @@
     <span class="p">)</span>
     <span class="n">SAME_PARTY_FROM_CROSS_PARTY_CONTEXT</span> <span class="o">=</span> <span class="s2">&quot;SamePartyFromCrossPartyContext&quot;</span>
     <span class="n">NAME_VALUE_PAIR_EXCEEDS_MAX_SIZE</span> <span class="o">=</span> <span class="s2">&quot;NameValuePairExceedsMaxSize&quot;</span>
+    <span class="n">PORT_MISMATCH</span> <span class="o">=</span> <span class="s2">&quot;PortMismatch&quot;</span>
+    <span class="n">SCHEME_MISMATCH</span> <span class="o">=</span> <span class="s2">&quot;SchemeMismatch&quot;</span>
 
     <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
@@ -2074,11 +2078,11 @@
     <span class="n">USER_SETTING</span> <span class="o">=</span> <span class="s2">&quot;UserSetting&quot;</span>
     <span class="n">TPCD_METADATA</span> <span class="o">=</span> <span class="s2">&quot;TPCDMetadata&quot;</span>
     <span class="n">TPCD_DEPRECATION_TRIAL</span> <span class="o">=</span> <span class="s2">&quot;TPCDDeprecationTrial&quot;</span>
+    <span class="n">TOP_LEVEL_TPCD_DEPRECATION_TRIAL</span> <span class="o">=</span> <span class="s2">&quot;TopLevelTPCDDeprecationTrial&quot;</span>
     <span class="n">TPCD_HEURISTICS</span> <span class="o">=</span> <span class="s2">&quot;TPCDHeuristics&quot;</span>
     <span class="n">ENTERPRISE_POLICY</span> <span class="o">=</span> <span class="s2">&quot;EnterprisePolicy&quot;</span>
     <span class="n">STORAGE_ACCESS</span> <span class="o">=</span> <span class="s2">&quot;StorageAccess&quot;</span>
     <span class="n">TOP_LEVEL_STORAGE_ACCESS</span> <span class="o">=</span> <span class="s2">&quot;TopLevelStorageAccess&quot;</span>
-    <span class="n">CORS_OPT_IN</span> <span class="o">=</span> <span class="s2">&quot;CorsOptIn&quot;</span>
     <span class="n">SCHEME</span> <span class="o">=</span> <span class="s2">&quot;Scheme&quot;</span>
 
     <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -2878,6 +2882,7 @@
     <span class="n">UNSAFE_NONE</span> <span class="o">=</span> <span class="s2">&quot;UnsafeNone&quot;</span>
     <span class="n">SAME_ORIGIN_PLUS_COEP</span> <span class="o">=</span> <span class="s2">&quot;SameOriginPlusCoep&quot;</span>
     <span class="n">RESTRICT_PROPERTIES_PLUS_COEP</span> <span class="o">=</span> <span class="s2">&quot;RestrictPropertiesPlusCoep&quot;</span>
+    <span class="n">NOOPENER_ALLOW_POPUPS</span> <span class="o">=</span> <span class="s2">&quot;NoopenerAllowPopups&quot;</span>
 
     <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>

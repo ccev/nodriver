@@ -6,15 +6,13 @@
 # CDP domain: Audits (experimental)
 
 from __future__ import annotations
+
 import enum
 import typing
 from dataclasses import dataclass
-from .util import event_class, T_JSON_DICT
 
-from . import dom
-from . import network
-from . import page
-from . import runtime
+from . import dom, network, page, runtime
+from .util import T_JSON_DICT, event_class
 
 
 @dataclass
@@ -106,6 +104,8 @@ class CookieExclusionReason(enum.Enum):
         "ExcludeThirdPartyCookieBlockedInFirstPartySet"
     )
     EXCLUDE_THIRD_PARTY_PHASEOUT = "ExcludeThirdPartyPhaseout"
+    EXCLUDE_PORT_MISMATCH = "ExcludePortMismatch"
+    EXCLUDE_SCHEME_MISMATCH = "ExcludeSchemeMismatch"
 
     def to_json(self) -> str:
         return self.value
@@ -136,6 +136,8 @@ class CookieWarningReason(enum.Enum):
     WARN_CROSS_SITE_REDIRECT_DOWNGRADE_CHANGES_INCLUSION = (
         "WarnCrossSiteRedirectDowngradeChangesInclusion"
     )
+    WARN_DEPRECATION_TRIAL_METADATA = "WarnDeprecationTrialMetadata"
+    WARN_THIRD_PARTY_COOKIE_HEURISTIC = "WarnThirdPartyCookieHeuristic"
 
     def to_json(self) -> str:
         return self.value
@@ -776,6 +778,9 @@ class AttributionReportingIssueType(enum.Enum):
     NO_REGISTER_TRIGGER_HEADER = "NoRegisterTriggerHeader"
     NO_REGISTER_OS_SOURCE_HEADER = "NoRegisterOsSourceHeader"
     NO_REGISTER_OS_TRIGGER_HEADER = "NoRegisterOsTriggerHeader"
+    NAVIGATION_REGISTRATION_UNIQUE_SCOPE_ALREADY_SET = (
+        "NavigationRegistrationUniqueScopeAlreadySet"
+    )
 
     def to_json(self) -> str:
         return self.value
@@ -957,7 +962,6 @@ class SharedDictionaryIssueDetails:
 
 
 class GenericIssueErrorType(enum.Enum):
-    CROSS_ORIGIN_PORTAL_POST_MESSAGE_ERROR = "CrossOriginPortalPostMessageError"
     FORM_LABEL_FOR_NAME_ERROR = "FormLabelForNameError"
     FORM_DUPLICATE_ID_FOR_INPUT_ERROR = "FormDuplicateIdForInputError"
     FORM_INPUT_WITH_NO_LABEL_ERROR = "FormInputWithNoLabelError"
@@ -1221,7 +1225,7 @@ class FederatedAuthRequestIssueReason(enum.Enum):
     THIRD_PARTY_COOKIES_BLOCKED = "ThirdPartyCookiesBlocked"
     NOT_SIGNED_IN_WITH_IDP = "NotSignedInWithIdp"
     MISSING_TRANSIENT_USER_ACTIVATION = "MissingTransientUserActivation"
-    REPLACED_BY_BUTTON_MODE = "ReplacedByButtonMode"
+    REPLACED_BY_ACTIVE_MODE = "ReplacedByActiveMode"
     INVALID_FIELDS_SPECIFIED = "InvalidFieldsSpecified"
     RELYING_PARTY_ORIGIN_IS_OPAQUE = "RelyingPartyOriginIsOpaque"
     TYPE_NOT_MATCHING = "TypeNotMatching"
