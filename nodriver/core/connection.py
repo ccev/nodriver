@@ -88,6 +88,8 @@ class Transaction(asyncio.Future):
 
     @property
     def message(self):
+        if self.method == "Page.enable":
+            return json.dumps({"method": self.method, "id": self.id})
 
         return json.dumps({"method": self.method, "params": self.params, "id": self.id})
 
