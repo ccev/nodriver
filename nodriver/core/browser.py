@@ -624,6 +624,8 @@ class Browser:
                         raise
             self._process = None
             self._process_pid = None
+            util.get_registered_instances().remove(self)
+            util.deconstruct_browser(self)
 
     def __await__(self):
         # return ( asyncio.sleep(0)).__await__()
@@ -848,4 +850,4 @@ class HTTPApi:
         return json.loads(response.read())
 
 
-atexit.register(util.deconstruct_browser)
+atexit.register(util.deconstruct_browsers)
