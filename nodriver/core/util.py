@@ -169,7 +169,7 @@ def deconstruct_browser(browser: Browser):
             time.sleep(0.15)
             continue
     
-    print("successfully removed temp profile %s" % browser.config.user_data_dir)
+    logger.info("successfully removed temp profile %s" % browser.config.user_data_dir)
 
 
 def deconstruct_browsers():
